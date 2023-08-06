@@ -2,42 +2,56 @@ const fs = require("fs");
 const express = require("express");
 const data = JSON.parse(fs.readFileSync("data.json", "utf-8"));
 const index = fs.readFileSync("index.html", "utf-8");
-const product = data.products;
-
+const products = data.products;
 const server = express();
-
+server.use(express.json());
 //middle where
 //app level
-server.use((req, res, next) => {
-  console.log(req.method, req.ip, req.hostname);
-  next();
-});
+
 //route level
-const auth = (req, res, next) => {
-  console.log(req.query);
-  if (req.query.password === "123") {
-    next();
-  } else {
-    res.sendStatus(401);
-  }
-};
-server.use(auth);
+
 //api ,endpoint,Route
-server.post("/", (req, res) => {
-  res.json({ type: "post" });
+// Products
+//read get /products
+server.get("/products", (req, res) => {
+  res.json(products);
 });
-server.put("/", (req, res) => {
-  res.json({ type: "PUT" });
+//get single item
+server.get("/products/:id", (req, res) => {
+  const id = +req.params.id;
+  console.log(id);
+  const product = products.find((p) => p.id === id);
+  console.log();
+  res.json(product);
 });
-server.patch("/", (req, res) => {
-  res.json({ type: "PATCH" });
+//create api
+server.post("/products", (req, res) => {
+  console.log(req.body);
+  products.push(req.body);
+  res.status(201).json(req.body);
 });
-server.delete("/", (req, res) => {
-  res.json({ type: "POSt" });
+server.put("/products/:id", (req, res) => {
+  const id = +req.params.id;
+  const index = products.findIndex((p) => p.id === id);
+  products.splice(index, 1, { ...req.body, id: id });
+  res.status(201).json(req.body);
 });
-server.get("/", (req, res) => {
-  res.json({ type: "GET" });
+server.patch("/products/:id", (req, res) => {
+  const id = +req.params.id;
+  const index = products.findIndex((p) => p.id === id);
+  const product = products[index];
+  products.splice(index, 1, { ...product, ...req.body });
+  res.status(201).json(req.body);
 });
+//delete api
+server.delete("/products/:id", (req, res) => {
+  const id = +req.params.id;
+  const index = products.findIndex((p) => p.id === id);
+  const product = products[index];
+  products.splice(index, 1);
+  res.status(201).json(product);
+});
+
 // server.get("/demo", (req, res) => {
 //   // res.send("<h1>hello</h1>");
 //   // res.sendFile()
